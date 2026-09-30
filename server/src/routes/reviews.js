@@ -1,13 +1,47 @@
-import { Router } from 'express';
-import {
+const express = require('express');
+
+const {
+  createReview,
   getAllReviews,
   getReview,
-  createReview,
-  getReviewSummary
-} from '../controllers/reviewController.js';
+  getReviewSummary,
+} = require('../controllers/reviewController');
 
-const router = Router();
+const router = express.Router();
 
-// TODO: wire up the three routes in README.md section 2 and the summary route in section 3.
 
-export default router;
+// ============================================================
+// POST /api/reviews
+// Create a new review
+// ============================================================
+router.post('/', createReview);
+
+
+// ============================================================
+// GET /api/reviews
+// Get all reviews
+// ============================================================
+router.get('/', getAllReviews);
+
+
+// ============================================================
+// GET /api/reviews/summary?facilityCode=FC101
+// Get review summary for a facility
+//
+// IMPORTANT:
+// This route MUST come before /:id.
+//
+// Otherwise Express could interpret "summary" as:
+// req.params.id = "summary"
+// ============================================================
+router.get('/summary', getReviewSummary);
+
+
+// ============================================================
+// GET /api/reviews/:id
+// Get one review by ID
+// ============================================================
+router.get('/:id', getReview);
+
+
+module.exports = router;
