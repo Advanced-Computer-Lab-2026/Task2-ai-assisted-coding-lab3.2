@@ -1,33 +1,69 @@
-import { Review } from '../models/Review.js';
+import Review from '../models/Review.js';
 
-// GET /api/reviews
-// TODO: implement per README.md section 2.
-export async function getAllReviews(req, res, next) {
+export const createReview = async (req, res, next) => {
   try {
-    // TODO
-  } catch (err) { next(err); }
-}
+    const review = await Review.create(req.body);
+    res.status(201).json({ review });
+  } catch (error) {
+    next(error);
+  }
+};
 
-// GET /api/reviews/:id
-// TODO: implement per README.md section 2.
-export async function getReview(req, res, next) {
+export const getAllReviews = async (req, res, next) => {
   try {
-    // TODO
-  } catch (err) { next(err); }
-}
+    const reviews = await Review.find();
+    res.status(200).json({ reviews });
+  } catch (error) {
+    next(error);
+  }
+};
 
-// POST /api/reviews
-// TODO: implement per README.md section 2.
-export async function createReview(req, res, next) {
+export const getReview = async (req, res, next) => {
   try {
-    // TODO
-  } catch (err) { next(err); }
-}
+    const review = await Review.findById(req.params.id);
+    if (!review) {
+      return res.status(404).json({ message: 'Review not found' });
+    }
+    res.status(200).json({ review });
+  } catch (error) {
+    next(error);
+  }
+};
 
-// GET /api/reviews/summary?facilityCode=FC101
-// TODO: implement per README.md section 3.
-export async function getReviewSummary(req, res, next) {
+export const getReviewSummary = async (req, res, next) => {
   try {
-    // TODO
-  } catch (err) { next(err); }
-}
+    const { facilityCode } = req.query;
+
+    if (!facilityCode) {
+      return res.status(400).json({ message: 'facilityCode is required' });
+    }
+
+    const summary = await Review.aggregate([
+      { $match: { facilityCode } },
+      {
+        $group: {
+          _id: '$facilityCode',
+          averageRating: { $avg: '$rating' },
+          reviewCount: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // If there are no reviews for this facility yet
+    if (summary.length === 0) {
+      return res.status(200).json({
+        facilityCode,
+        averageRating: 0,
+        reviewCount: 0
+      });
+    }
+
+    res.status(200).json({
+      facilityCode: summary[0]._id,
+      averageRating: summary[0].averageRating,
+      reviewCount: summary[0].reviewCount
+    });
+  } catch (error) {
+    next(error);
+  }
+};
