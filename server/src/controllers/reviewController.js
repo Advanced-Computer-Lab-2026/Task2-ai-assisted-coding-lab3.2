@@ -1,33 +1,71 @@
 import { Review } from '../models/Review.js';
 
+// POST /api/reviews
+export async function createReview(req, res, next) {
+  try {
+    const { facilityCode, rating, comment, reviewedBy } = req.body;
+
+    if (!facilityCode) return res.status(400).json({ message: 'facilityCode is required' });
+    if (rating === undefined) return res.status(400).json({ message: 'rating is required' });
+    if (rating < 1 || rating > 5) return res.status(400).json({ message: 'rating must be between 1 and 5' });
+
+    const review = await Review.create({ facilityCode, rating, comment, reviewedBy });
+    res.status(201).json({ review });
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(409).json({ message: 'Review already exists for this facility by this user' });
+    }
+    next(err);
+  }
+}
+
 // GET /api/reviews
-// TODO: implement per README.md section 2.
 export async function getAllReviews(req, res, next) {
   try {
-    // TODO
+    const reviews = await Review.find().lean();
+    res.json({ reviews });
   } catch (err) { next(err); }
 }
 
 // GET /api/reviews/:id
-// TODO: implement per README.md section 2.
 export async function getReview(req, res, next) {
   try {
-    // TODO
+    const review = await Review.findById(req.params.id);
+    if (!review) return res.status(404).json({ message: 'Review not found' });
+    res.json({ review });
   } catch (err) { next(err); }
 }
 
-// POST /api/reviews
-// TODO: implement per README.md section 2.
-export async function createReview(req, res, next) {
-  try {
-    // TODO
-  } catch (err) { next(err); }
-}
-
-// GET /api/reviews/summary?facilityCode=FC101
-// TODO: implement per README.md section 3.
+// GET /api/reviews/summary?facilityCode=...
 export async function getReviewSummary(req, res, next) {
   try {
-    // TODO
+    const { facilityCode } = req.query;
+    if (!facilityCode) return res.status(400).json({ message: 'facilityCode is required' });
+
+    const result = await Review.aggregate([
+      { $match: { facilityCode } },
+      {
+        $group: {
+          _id: null,
+          averageRating: { $avg: '$rating' },
+          reviewCount: { $sum: 1 }
+        }
+      }
+    ]);
+
+    if (result.length === 0) {
+      return res.json({
+        facilityCode,
+        averageRating: 0,
+        reviewCount: 0
+      });
+    }
+
+    const { averageRating, reviewCount } = result[0];
+    res.json({
+      facilityCode,
+      averageRating,
+      reviewCount
+    });
   } catch (err) { next(err); }
 }
