@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import express from 'express';
 import {
   getAllReviews,
   getReview,
@@ -6,8 +6,18 @@ import {
   getReviewSummary
 } from '../controllers/reviewController.js';
 
-const router = Router();
+const router = express.Router();
 
-// TODO: wire up the three routes in README.md section 2 and the summary route in section 3.
+// GET /api/reviews
+router.get('/', getAllReviews);
+
+// GET /api/reviews/summary
+router.get('/summary', getReviewSummary);
+
+// GET /api/reviews/:id
+router.get('/:id', getReview);
+
+// POST /api/reviews
+router.post('/', createReview);
 
 export default router;
