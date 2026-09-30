@@ -8,6 +8,11 @@ import {
 
 const router = Router();
 
-// TODO: wire up the three routes in README.md section 2 and the summary route in section 3.
+// Summary endpoint must be defined before /:id to avoid being treated as an ID
+router.get('/summary', getReviewSummary);
+
+router.get('/', getAllReviews);
+router.get('/:id', getReview);
+router.post('/', createReview);
 
 export default router;
