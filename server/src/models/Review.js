@@ -1,14 +1,33 @@
 import mongoose from 'mongoose';
 
-// TODO: define the Review schema per README.md section 1.
-
-const reviewSchema = new mongoose.Schema(
-  {
-    // TODO
+const reviewSchema = new mongoose.Schema({
+  facilityCode: {
+    type: String,
+    required: true,
+    trim: true
   },
-  { timestamps: true }
-);
+  reviewedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: false
+  },
+  rating: {
+    type: Number,
+    required: true,
+    min: 1,
+    max: 5
+  },
+  comment: {
+    type: String,
+    trim: true
+  }
+}, {
+  timestamps: true
+});
 
-// TODO: add the compound uniqueness constraint described in README.md section 1.
+// Compound unique index on facilityCode and reviewedBy
+reviewSchema.index({ facilityCode: 1, reviewedBy: 1 }, { unique: true });
 
-export const Review = mongoose.model('Review', reviewSchema);
+const Review = mongoose.model('Review', reviewSchema);
+export { Review };
+export default Review;
